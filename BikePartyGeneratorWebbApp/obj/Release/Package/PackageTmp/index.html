@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Bike Party Generator</title>
+</head>
+<body>
+    <div>
+        <h2>Members</h2>
+        <ul id="members" />
+    </div>
+    <div>
+        <input type="text" id="nameInput" size="5" />
+        <input type="button" value="Add" onclick="add(document.getElementById('nameInput').value);" />
+        <h2>Search by ID</h2>
+        <input type="text" id="memberId" size="5" />
+        <input type="button" value="Search" onclick="find();" />
+        <p id="member" />
+    </div>
+    <div>
+        <h2>Generate scheme</h2>
+        <input type="button" value="Generate" onclick="generateScheme();" />
+        <ul id="party" />
+    </div>
+
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
+    <script src="WebAPI.js"></script>
+</body>
+</html>

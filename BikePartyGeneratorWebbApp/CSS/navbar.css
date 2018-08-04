@@ -1,0 +1,35 @@
+@media (min-width: 600px) {
+  .navbar-expand-custom {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  .navbar-expand-custom .navbar-nav {
+    flex-direction: row;
+  }
+  .navbar-expand-custom .navbar-nav .nav-link {
+    padding-right: .5rem;
+    padding-left: .5rem;
+  }
+  .navbar-expand-custom .navbar-collapse {
+    display: flex !important;
+  }
+  .navbar-expand-custom .navbar-toggler {
+    display: none;
+  }
+  .field-wrapper {
+    width: 70%!important;
+  }
+}
+
+.field-wrapper {
+  padding: 1.5rem;
+  margin-right: 0;
+  margin-left: 0;
+  border-width: .2rem;
+  width: 100%;
+}
+
+.list-group {
+  width: 50%;
+}

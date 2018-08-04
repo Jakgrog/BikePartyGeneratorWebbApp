@@ -46,7 +46,8 @@ function add(InputName) {
         success: function (data) {
             var ul = document.getElementById("members");
             var li = document.createElement("li");
-            li.appendChild(document.createTextNode(formatItem(data)));
+            li.setAttribute("class", "list-group-item");
+            li.appendChild(document.createTextNode(data.Name));
             ul.appendChild(li);
         }
     });
@@ -62,7 +63,7 @@ function generateScheme() {
         .done(function (data) {
             $.each(data.dateList, function (key, item) {
                 // Add a list item for the product.
-                $('<li>', { text: item }).appendTo($('#party'), '</li>');
+                $('<li>', { text: item }).attr('class','list-group-item').appendTo($('#party'), '</li>');
             });
         })
         .fail(function (jqXHR, textStatus, err) {
