@@ -5,16 +5,19 @@ var idIncrement = 1;
 
 function getAllMembers() {
   // Send an AJAX request
-  $('#members').empty();
-  $.getJSON(uri)
-    .done(function(data) {
-      // On success, 'data' contains a list of products.
-      $.each(data, function(key, item) {
-        // Add a list item for the product.
-        $('<li>', {
-          text: formatItem(item)
-        }).appendTo($('#members'));
-      });
+    $.ajax({
+      url: uri,
+      type: "GET",
+      contentType: "application/json",
+      success: function(data) {
+        $.each(data, function(key, item) {
+          var ul = document.getElementById("members");
+          var li = document.createElement("li");
+          li.setAttribute("class", "list-group-item");
+          li.appendChild(document.createTextNode(item.name));
+          ul.appendChild(li);
+        });
+      }
     });
 }
 
@@ -60,7 +63,6 @@ function createTable(data){
   headerRow.insertCell(-1).innerHTML = "<b>Dessert</b>";
   var body = table.createTBody();
   $.each(data.dateList, function(key, item) {
-    // Add a list item for the product.
     var row = body.insertRow(0);
     var cell0 = row.insertCell(-1);
     var cell1 = row.insertCell(-1);

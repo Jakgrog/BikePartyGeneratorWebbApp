@@ -152,7 +152,7 @@ namespace Generator
                 foreach (Member m in this.noStarterDateFound)
                 {
                     m.starter = starter[index];
-                    index = index < starter.Count ? index + 1 : 0;
+                    index = index < starter.Count-1 ? index + 1 : 0;
                 }
             }
 
@@ -164,7 +164,7 @@ namespace Generator
                 foreach (Member m in this.noDinnerDateFound)
                 {
                     m.dinner = dinner[index];
-                    index = index < dinner.Count ? index + 1 : 0;
+                    index = index < dinner.Count-1 ? index + 1 : 0;
                 }
             }
 
@@ -176,7 +176,7 @@ namespace Generator
                 foreach (Member m in this.noDessertDateFound)
                 {
                     m.dessert = dessert[index];
-                    index = index < dessert.Count ? index + 1 : 0;
+                    index = index < dessert.Count-1 ? index + 1 : 0;
                 }
             }
         }
