@@ -9,11 +9,17 @@ namespace BikePartyGeneratorWebbApp.Models
     {
         public JsonMember(string name)
         {
-            this.Name = name;
+            this.name = name;
         }
 
         public JsonMember(){}
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string name { get; set; }
+
+        public string duty { get; set; }
+
+        public string dinner { get; set; }
+        public string starter { get; set; }
+        public string dessert { get; set; }
     }
 }

@@ -14,11 +14,20 @@ namespace Generator
 
             foreach (Member m in members)
             { 
-                string starter = m.starter != null ? "Starter: " + m.starter.printNames() + ", " : null;
-                string dinner = m.dinner != null ? "Dinner: " + m.dinner.printNames() + ", " : null;
-                string dessert = m.dessert != null ? "Dessert: " + m.dessert.printNames() : null;
+                string starter = m.starter != null ? m.starter.printNames(): null;
+                string dinner = m.dinner != null ? m.dinner.printNames(): null;
+                string dessert = m.dessert != null ? m.dessert.printNames() : null;
 
-                scheme.dateList.Add(m.printNames() + " " + m.duty + ": " + starter + dinner + dessert);
+                JsonMember member = new JsonMember();
+                member.name = m.printNames();
+                member.duty = m.duty;
+                member.starter = starter;
+                member.dessert = dessert;
+                member.dinner = dinner;
+
+                scheme.dateList.Add(member);
+
+                //scheme.dateList.Add(m.printNames() + " " + m.duty + ": " + starter + dinner + dessert);
             }
             return scheme;
         }

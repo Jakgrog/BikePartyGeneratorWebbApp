@@ -7,11 +7,11 @@ namespace BikePartyGeneratorWebbApp.Models
 {
     public class JsonScheme
     {     
-        public List<string> dateList;
+        public List<JsonMember> dateList;
 
         public JsonScheme()
         {
-            dateList = new List<string>();
+            dateList = new List<JsonMember>();
         }
     }
 }

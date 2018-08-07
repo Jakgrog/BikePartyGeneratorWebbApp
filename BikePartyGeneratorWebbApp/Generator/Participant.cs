@@ -7,7 +7,6 @@ namespace Generator
     {
         public int ID;
         public List<Member> schedule;
-        private List<int> allreadyMet;
         private List<string> names;
         private string address;
         internal string duty;
@@ -20,23 +19,22 @@ namespace Generator
             this.ID = ID;
             this.names = names;
             this.address = address;
-            allreadyMet = new List<int>();
-            addAllreadyMet(ID);
             schedule = new List<Member>();
+            party = new List<int>();
+            party.Add(ID);
+            allReadyMet = new List<int>();
 
             this.starter = null;
             this.dinner = null;
             this.dessert = null;
         }
 
-        public void addAllreadyMet(int ID)
-        {
-            allreadyMet.Add(ID);
+        public List<int> party { get; set; }
+        public List<int> allReadyMet { get; set; }
 
-        }
-        public List<int> getAllreadyMet()
+        public bool PartyNotFull()
         {
-            return allreadyMet;
+            return party.Count < 3;
         }
 
         public string printNames()

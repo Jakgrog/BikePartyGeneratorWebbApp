@@ -16,7 +16,7 @@ namespace Generator
             List<Member> members = new List<Member>();
             foreach (var member in memberList)
             {
-                List<string> names = new List<string>(member.Name.Split(','));
+                List<string> names = new List<string>(member.name.Split(','));
                 members.Add(new Member(member.Id, names, "Ryd"));
             }
             memberhandler = new Memberhandler(members);

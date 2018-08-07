@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -41,6 +42,10 @@ namespace Generator
         /// </summary>
         /// <param name="members"></param>
         /// <param name="count"></param>
+
+        private List<Member> noStarterDateFound;
+        private List<Member> noDessertDateFound;
+        private List<Member> noDinnerDateFound;
         public void createDates(List<Member> members, int count)
         {
             tempMembers = new List<Member>(members);
@@ -51,95 +56,131 @@ namespace Generator
             List<Member> starter = new List<Member>(tempMembers.GetRange(0, numnerOfMembersPerDate));
             List<Member> dinner = new List<Member>(tempMembers.GetRange(numnerOfMembersPerDate, numnerOfMembersPerDate));
             List<Member> dessert = new List<Member>(tempMembers.GetRange((2 * numnerOfMembersPerDate), (tempMembers.Count - 2 * numnerOfMembersPerDate)));
+            noDinnerDateFound = new List<Member>();
+            noDessertDateFound = new List<Member>();
+            noStarterDateFound = new List<Member>();
 
-            int v = starter.Count - 1;
-            int i = 0;
-            int t = 0;
-            int s = v;
-            foreach (Member m in starter)
+            foreach(Member m in starter)
             {
-                m.duty = "starter";
-                if(i == 0)
-                {
-                    m.dessert = dessert[v/2];
-                    m.dinner = dinner[i];
-                }
-                else if (i > 0 && i <= v/2)
-                {
-                    m.dessert = dessert[t];
-                    m.dinner = dinner[i];
-                    t++;
-                }
-                else if (i > v / 2)
-                {
-                    m.dinner = dinner[s];
-                    m.dessert = dessert[s];
-                }
-                i++;
-                s--;
+                m.duty = "Starter";
+                m.dinner = FindDate(m, dinner, "dinner");
+                m.dessert = FindDate(m, dessert, "dessert");
             }
-
-            v = dinner.Count - 1;
-            i = 0;
-            t = v/2;
-            s = v;
             foreach (Member m in dinner)
             {
-                m.duty = "dinner";
-                if (i < v / 2)
-                {
-                    m.starter = starter[t];
-                    m.dessert = dessert[s];
-                }
-                else if (i == v / 2)
-                {
-                    m.starter = starter[t];
-                    s = v;
-                    m.dessert = dessert[s];
-                }
-                else if (i > v/2)
-                {
-                    t = v / 2;
-                    m.starter = starter[t];
-                    m.dessert = dessert[s];
-                }
-                t++;
-                i++;
-                s--;
+                m.duty = "Dinner";
+                m.starter = FindDate(m, starter, "starter");
+                m.dessert = FindDate(m, dessert, "dessert");
             }
-
-            v = numnerOfMembersPerDate - 1;
-            i = 0;
-            t = 0;
-            s = v;
             foreach (Member m in dessert)
             {
-                m.duty = "dessert";
-                if(i > v)
+                m.duty = "Dessert";
+                m.dinner = FindDate(m, dinner, "dinner");
+                m.starter = FindDate(m, starter, "starter");
+            }
+
+            handleNoDatesFound(starter, dinner, dessert);
+        }
+
+        private Member FindDate(Member m, List<Member> list, string dateType)
+        {
+            Member date = list.Where(x => !AllReadyMet(m, x.party) && x.PartyNotFull()).FirstOrDefault();
+            if (date != null)
+            {
+                switch (dateType)
                 {
-                    m.dinner = dinner[0];
-                    m.starter = starter[0];
+                    case "starter":
+                        m.starter = date;
+                        registerDate(m, date);
+                        break;
+                    case "dinner":
+                        m.dinner = date;
+                        registerDate(m, date);
+                        break;
+                    case "dessert":
+                        m.dessert = date;
+                        registerDate(m, date);
+                        break;
                 }
-                else if (i < v / 2)
+            }
+            else
+            {
+                switch (dateType)
                 {
-                    m.dinner = dinner[v - t];
-                    m.starter = starter[t];
+                    case "starter":
+                        this.noStarterDateFound.Add(m);
+                        break;
+                    case "dinner":
+                        this.noDinnerDateFound.Add(m);
+                        break;
+                    case "dessert":
+                        this.noDessertDateFound.Add(m);
+                        break;
                 }
-                else if(i == v / 2)
+            }
+            return date;
+        }
+
+        private bool AllReadyMet(Member memb, List<int> party)
+        {
+            foreach (int membID in party)
+            {
+                if (memb.allReadyMet.FirstOrDefault(x => x == membID) != 0)
                 {
-                    m.dinner = dinner[v/2];
-                    m.starter = starter[v];
+                    return true;
                 }
-                else if(i > v / 2)
+            }
+            return false;
+        }
+        private void registerDate(Member m, Member date)
+        {
+            m.allReadyMet.Add(date.ID);
+            date.allReadyMet.Add(m.ID);
+            date.party.Add(m.ID);
+        }
+
+        private void handleNoDatesFound(List<Member> starter, List<Member> dinner, List<Member> dessert)
+        {
+            List<Member> tempList;
+            int index;
+
+            if (this.noStarterDateFound != null)
+            {
+                tempList = new List<Member>(starter);
+                tempList.Shuffle();
+                index = 0;
+                foreach (Member m in this.noStarterDateFound)
                 {
-                    m.dinner = dinner[t];
-                    m.starter = starter[s];
+                    m.starter = starter[index];
+                    index = index < starter.Count ? index + 1 : 0;
                 }
-                i++;
-                t++;
-                s--;
+            }
+
+            if (this.noDinnerDateFound != null)
+            {
+                tempList = new List<Member>(dinner);
+                tempList.Shuffle();
+                index = 0;
+                foreach (Member m in this.noDinnerDateFound)
+                {
+                    m.dinner = dinner[index];
+                    index = index < dinner.Count ? index + 1 : 0;
+                }
+            }
+
+            if (this.noDessertDateFound != null)
+            {
+                tempList = new List<Member>(dessert);
+                tempList.Shuffle();
+                index = 0;
+                foreach (Member m in this.noDessertDateFound)
+                {
+                    m.dessert = dessert[index];
+                    index = index < dessert.Count ? index + 1 : 0;
+                }
             }
         }
+        
     }
 
     static class Extensions
