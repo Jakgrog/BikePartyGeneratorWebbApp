@@ -3,22 +3,29 @@ var uri = 'api/members';
 var uriGen = 'api/generator';
 var idIncrement = 1;
 
+function loadNavbar(itemId) {
+  $('#navbar').load("navbar-template.html", function() {
+    // this is run after header.html has been loaded
+    $(itemId).addClass('active');
+  });
+}
+
 function getAllMembers() {
   // Send an AJAX request
-    $.ajax({
-      url: uri,
-      type: "GET",
-      contentType: "application/json",
-      success: function(data) {
-        $.each(data, function(key, item) {
-          var ul = document.getElementById("members");
-          var li = document.createElement("li");
-          li.setAttribute("class", "list-group-item");
-          li.appendChild(document.createTextNode(item.name));
-          ul.appendChild(li);
-        });
-      }
-    });
+  $.ajax({
+    url: uri,
+    type: "GET",
+    contentType: "application/json",
+    success: function(data) {
+      $.each(data, function(key, item) {
+        var ul = document.getElementById("members");
+        var li = document.createElement("li");
+        li.setAttribute("class", "list-group-item");
+        li.appendChild(document.createTextNode(item.name));
+        ul.appendChild(li);
+      });
+    }
+  });
 }
 
 function formatItem(item) {
@@ -52,7 +59,7 @@ function formatSchemeItem(item) {
 }
 
 
-function createTable(data){
+function createTable(data) {
   var table = document.getElementById("scheduleTable");
   var header = table.createTHead();
   var headerRow = header.insertRow(0);
