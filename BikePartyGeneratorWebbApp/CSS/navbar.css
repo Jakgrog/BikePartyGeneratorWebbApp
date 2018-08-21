@@ -17,19 +17,4 @@
   .navbar-expand-custom .navbar-toggler {
     display: none;
   }
-  .field-wrapper {
-    width: 70%!important;
-  }
-}
-
-.field-wrapper {
-  padding: 1.5rem;
-  margin-right: 0;
-  margin-left: 0;
-  border-width: .2rem;
-  width: 100%;
-}
-
-.list-group {
-  width: 50%;
 }

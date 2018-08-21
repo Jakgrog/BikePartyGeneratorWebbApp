@@ -81,9 +81,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BPGServerAPI.js" />
     <Content Include="Global.asax" />
     <Content Include="index.html" />
-    <Content Include="WebAPI.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

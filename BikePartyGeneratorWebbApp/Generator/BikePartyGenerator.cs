@@ -9,19 +9,16 @@ namespace Generator
     {
         private static Memberhandler memberhandler;
         private static Scheme scheme;
-        private static int j;
 
         public GeneratorClass(List<JsonMember> memberList)
         {
             List<Member> members = new List<Member>();
             foreach (var member in memberList)
             {
-                List<string> names = new List<string>(member.name.Split(','));
-                members.Add(new Member(member.Id, names, "Ryd"));
+                members.Add(new Member(member.Id, member.names, member.address, member.phone));
             }
             memberhandler = new Memberhandler(members);
         }
-
 
         public JsonScheme generate()
         {

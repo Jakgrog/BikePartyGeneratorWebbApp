@@ -7,14 +7,10 @@ namespace BikePartyGeneratorWebbApp.Models
 {
     public class JsonMember
     {
-        public JsonMember(string name)
-        {
-            this.name = name;
-        }
-
-        public JsonMember(){}
         public int Id { get; set; }
-        public string name { get; set; }
+        public List<string> names { get; set; }
+        public string address { get; set; }
+        public string phone { get; set; }
 
         public string duty { get; set; }
 

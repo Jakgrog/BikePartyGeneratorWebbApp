@@ -1,27 +1,33 @@
 ﻿
 var uri = 'api/members';
 var uriGen = 'api/generator';
-var idIncrement = 1;
 
 function loadNavbar(itemId) {
   $('#navbar').load("navbar-template.html", function() {
-    // this is run after header.html has been loaded
+    // this is runned after header.html has been loaded
     $(itemId).addClass('active');
   });
 }
 
 function getAllMembers() {
-  // Send an AJAX request
   $.ajax({
     url: uri,
     type: "GET",
     contentType: "application/json",
     success: function(data) {
+      // Gets all members and creates a list on the register page when loaded
       $.each(data, function(key, item) {
         var ul = document.getElementById("members");
         var li = document.createElement("li");
+        var span = document.createElement('span');
+        span.setAttribute("class", "close");
+        span.onclick = function() {removeMember(this.parentNode.id);};
+        span.innerHTML = '&times';
+
         li.setAttribute("class", "list-group-item");
-        li.appendChild(document.createTextNode(item.name));
+        li.setAttribute("id", item.Id);
+        li.appendChild(span);
+        li.appendChild(document.createTextNode(item.names));
         ul.appendChild(li);
       });
     }
@@ -32,10 +38,28 @@ function formatItem(item) {
   return item.Id + ': ' + item.Name;
 }
 
-function add(InputName) {
+function registerMember() {
+  const InputNamesNodeList = document.getElementsByName("name");
+  var nameInput = [];
+
+  $.each(InputNamesNodeList, function (index, value) {
+    nameInput.push(value.value);
+    value.value = '';
+  });
+
+  const addressInput = document.getElementById('addressInput');
+  const phoneInput = document.getElementById('phoneInput');
+  add(nameInput, addressInput.value, phoneInput.value);
+  addressInput.value = '';
+  phoneInput.value = '';
+  document.getElementById('nameInput').focus();
+}
+
+function add(InputName, InputAddress, InputPhone) {
   var sendJsonData = {
-    Id: idIncrement,
-    Name: InputName
+    names: InputName,
+    address: InputAddress,
+    phone: InputPhone
   };
 
   $.ajax({
@@ -44,20 +68,34 @@ function add(InputName) {
     contentType: "application/json",
     data: JSON.stringify(sendJsonData),
     success: function(data) {
+      //Add this new member to the list on the register page
       var ul = document.getElementById("members");
       var li = document.createElement("li");
+      var span = document.createElement('span');
+      span.setAttribute("class", "close");
+      span.onclick = function () { removeMember(this.parentNode.id);};
+      span.innerHTML = '&times';
       li.setAttribute("class", "list-group-item");
-      li.appendChild(document.createTextNode(data.name));
+      li.setAttribute("id", data.Id);
+      li.appendChild(span);
+      li.appendChild(document.createTextNode(data.names));
       ul.appendChild(li);
     }
   });
-  idIncrement++;
+}
+
+function removeMember(id){
+    $.ajax({
+        url: uri + "/RemoveMember/" + id,
+        type: "POST",
+        contentType: "application/json"
+    });
+  $("#"+id).remove();
 }
 
 function formatSchemeItem(item) {
   return item.text;
 }
-
 
 function createTable(data) {
   var table = document.getElementById("scheduleTable");
@@ -86,7 +124,7 @@ function createTable(data) {
 
 function generateScheme() {
   $.ajax({
-    url: uriGen + '/' + 1,
+    url: uriGen,
     type: "GET",
     contentType: "application/json",
     success: function(data) {

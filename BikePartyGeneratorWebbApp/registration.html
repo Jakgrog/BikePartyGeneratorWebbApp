@@ -7,10 +7,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <link rel="stylesheet" href="CSS/navbar.css">
+  <link rel="stylesheet" href="CSS/registrationForm.css">
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
   <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>
-  <script src="WebAPI.js"></script>
+  <script src="BPGServerAPI.js"></script>
 </head>
 
 <body>
@@ -23,17 +24,42 @@
       <div class="input-group-prepend">
         <span class="input-group-text" id="">First and last name</span>
       </div>
-      <input type="text" class="form-control" id="nameInput">
-      <div class="input-group-append">
-        <button class="btn btn-outline-secondary" type="button" onclick="add(document.getElementById('nameInput').value);">Add</button>
-      </div>
+      <input name="name" type="text" class="form-control" id="nameInput">
     </div>
+
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="">First and last name</span>
+      </div>
+      <input name="name" type="text" class="form-control" id="nameInput">
+    </div>
+
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="">Address</span>
+      </div>
+      <input type="text" class="form-control" id="addressInput">
+    </div>
+
+    <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="">Phone number</span>
+      </div>
+      <input type="text" class="form-control" id="phoneInput">
+    </div>
+
+    <div class="input-group mb-3">
+      <button class="btn btn-outline-secondary" type="button" onclick="registerMember();">Add</button>
+    </div>
+
     <ul class="list-group" id="members">
       <script>
         getAllMembers();
       </script>
     </ul>
   </div>
+  </div>
+
 </body>
 
 </html>

@@ -12,7 +12,7 @@ namespace BikePartyGeneratorWebbApp.Controllers
 {
     public class GeneratorController : ApiController
     {
-        public IHttpActionResult GetScheme(int Id)
+        public IHttpActionResult GetScheme()
         {
             List<JsonMember> members = (new MembersController()).GetAllMembers();
             GeneratorClass generator = new GeneratorClass(members);

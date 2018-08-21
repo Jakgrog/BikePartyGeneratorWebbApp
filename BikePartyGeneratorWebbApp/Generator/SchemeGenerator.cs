@@ -19,15 +19,13 @@ namespace Generator
                 string dessert = m.dessert != null ? m.dessert.printNames() : null;
 
                 JsonMember member = new JsonMember();
-                member.name = m.printNames();
+                member.names = m.getNames();
                 member.duty = m.duty;
                 member.starter = starter;
                 member.dessert = dessert;
                 member.dinner = dinner;
 
                 scheme.dateList.Add(member);
-
-                //scheme.dateList.Add(m.printNames() + " " + m.duty + ": " + starter + dinner + dessert);
             }
             return scheme;
         }

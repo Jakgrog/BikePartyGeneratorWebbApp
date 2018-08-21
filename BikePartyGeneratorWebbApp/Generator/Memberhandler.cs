@@ -51,7 +51,7 @@ namespace Generator
             tempMembers = new List<Member>(members);
             tempMembers.Shuffle();
             double numberOfMembers = tempMembers.Count;
-            int numnerOfMembersPerDate = (int)Math.Floor(numberOfMembers / 3);
+            int numnerOfMembersPerDate = (int)Math.Round(numberOfMembers / 3);
 
             List<Member> starter = new List<Member>(tempMembers.GetRange(0, numnerOfMembersPerDate));
             List<Member> dinner = new List<Member>(tempMembers.GetRange(numnerOfMembersPerDate, numnerOfMembersPerDate));

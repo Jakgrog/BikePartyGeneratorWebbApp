@@ -8,17 +8,17 @@ namespace Generator
         public int ID;
         public List<Member> schedule;
         private List<string> names;
-        private string address;
         internal string duty;
         internal Member starter;
         internal Member dinner;
         internal Member dessert;
 
-        public Member(int ID, List<string> names, string address)
+        public Member(int ID, List<string> names, string address, string phone)
         {
             this.ID = ID;
             this.names = names;
             this.address = address;
+            this.phone = phone;
             schedule = new List<Member>();
             party = new List<int>();
             party.Add(ID);
@@ -29,6 +29,8 @@ namespace Generator
             this.dessert = null;
         }
 
+        public string address { get; set; }
+        public string phone { get; set; }
         public List<int> party { get; set; }
         public List<int> allReadyMet { get; set; }
 
