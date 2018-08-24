@@ -11,7 +11,7 @@ namespace BikePartyGeneratorWebbApp.Models
         public List<string> names { get; set; }
         public string address { get; set; }
         public string phone { get; set; }
-
+        public int association { get; set; }
         public string duty { get; set; }
 
         public string dinner { get; set; }

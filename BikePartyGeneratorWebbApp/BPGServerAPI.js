@@ -47,19 +47,21 @@ function registerMember() {
     value.value = '';
   });
 
+  const associationInput = document.getElementById('associationDropdown');
   const addressInput = document.getElementById('addressInput');
   const phoneInput = document.getElementById('phoneInput');
-  add(nameInput, addressInput.value, phoneInput.value);
+  add(nameInput, addressInput.value, phoneInput.value, associationInput.selectedIndex);
   addressInput.value = '';
   phoneInput.value = '';
   document.getElementById('nameInput').focus();
 }
 
-function add(InputName, InputAddress, InputPhone) {
+function add(InputName, InputAddress, InputPhone, associationInput) {
   var sendJsonData = {
     names: InputName,
     address: InputAddress,
-    phone: InputPhone
+    phone: InputPhone,
+    association: associationInput
   };
 
   $.ajax({

@@ -13,12 +13,13 @@ namespace Generator
         internal Member dinner;
         internal Member dessert;
 
-        public Member(int ID, List<string> names, string address, string phone)
+        public Member(int ID, List<string> names, string address, string phone, int association)
         {
             this.ID = ID;
             this.names = names;
             this.address = address;
             this.phone = phone;
+            this.association = association;
             schedule = new List<Member>();
             party = new List<int>();
             party.Add(ID);
@@ -31,6 +32,7 @@ namespace Generator
 
         public string address { get; set; }
         public string phone { get; set; }
+        public int association { get; set; }
         public List<int> party { get; set; }
         public List<int> allReadyMet { get; set; }
 

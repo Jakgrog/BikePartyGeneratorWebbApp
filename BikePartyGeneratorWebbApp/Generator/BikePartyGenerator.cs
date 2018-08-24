@@ -15,7 +15,7 @@ namespace Generator
             List<Member> members = new List<Member>();
             foreach (var member in memberList)
             {
-                members.Add(new Member(member.Id, member.names, member.address, member.phone));
+                members.Add(new Member(member.Id, member.names, member.address, member.phone, member.association));
             }
             memberhandler = new Memberhandler(members);
         }
