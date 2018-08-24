@@ -2,6 +2,19 @@
 var uri = 'api/members';
 var uriGen = 'api/generator';
 
+function formatNames(item) {
+  var formatedNamesString = '';
+  for (var i = 0; i < item.length; i++) {
+    if (i === item.length - 1 && item.length > 1) {
+      formatedNamesString += ' and ';
+    } else if (i !== 0 && item.length > 1) {
+      formatedNamesString += ', ';
+    }
+    formatedNamesString += item[i];
+  }
+  return formatedNamesString;
+}
+
 function loadNavbar(itemId) {
   $('#navbar').load("navbar-template.html", function() {
     // this is runned after header.html has been loaded
@@ -21,28 +34,26 @@ function getAllMembers() {
         var li = document.createElement("li");
         var span = document.createElement('span');
         span.setAttribute("class", "close");
-        span.onclick = function() {removeMember(this.parentNode.id);};
+        span.onclick = function() {
+          removeMember(this.parentNode.id);
+        };
         span.innerHTML = '&times';
 
         li.setAttribute("class", "list-group-item");
         li.setAttribute("id", item.Id);
         li.appendChild(span);
-        li.appendChild(document.createTextNode(item.names));
+        li.appendChild(document.createTextNode(formatNames(item.names)));
         ul.appendChild(li);
       });
     }
   });
 }
 
-function formatItem(item) {
-  return item.Id + ': ' + item.Name;
-}
-
 function registerMember() {
   const InputNamesNodeList = document.getElementsByName("name");
   var nameInput = [];
 
-  $.each(InputNamesNodeList, function (index, value) {
+  $.each(InputNamesNodeList, function(index, value) {
     nameInput.push(value.value);
     value.value = '';
   });
@@ -75,53 +86,59 @@ function add(InputName, InputAddress, InputPhone, associationInput) {
       var li = document.createElement("li");
       var span = document.createElement('span');
       span.setAttribute("class", "close");
-      span.onclick = function () { removeMember(this.parentNode.id);};
+      span.onclick = function() {
+        removeMember(this.parentNode.id);
+      };
       span.innerHTML = '&times';
       li.setAttribute("class", "list-group-item");
       li.setAttribute("id", data.Id);
       li.appendChild(span);
-      li.appendChild(document.createTextNode(data.names));
+      li.appendChild(document.createTextNode(formatNames(data.names)));
       ul.appendChild(li);
     }
   });
 }
 
-function removeMember(id){
-    $.ajax({
-        url: uri + "/RemoveMember/" + id,
-        type: "POST",
-        contentType: "application/json"
-    });
-  $("#"+id).remove();
-}
-
-function formatSchemeItem(item) {
-  return item.text;
+function removeMember(id) {
+  $.ajax({
+    url: uri + "/RemoveMember/" + id,
+    type: "POST",
+    contentType: "application/json"
+  });
+  $("#" + id).remove();
 }
 
 function createTable(data) {
-  var table = document.getElementById("scheduleTable");
-  var header = table.createTHead();
-  var headerRow = header.insertRow(0);
-  headerRow.insertCell(-1).innerHTML = "<b>Name</b>";
-  headerRow.insertCell(-1).innerHTML = "<b>Duty</b>";
-  headerRow.insertCell(-1).innerHTML = "<b>Starter</b>";
-  headerRow.insertCell(-1).innerHTML = "<b>Dinner</b>";
-  headerRow.insertCell(-1).innerHTML = "<b>Dessert</b>";
-  var body = table.createTBody();
-  $.each(data.dateList, function(key, item) {
-    var row = body.insertRow(0);
-    var cell0 = row.insertCell(-1);
-    var cell1 = row.insertCell(-1);
-    var cell2 = row.insertCell(-1);
-    var cell3 = row.insertCell(-1);
-    var cell4 = row.insertCell(-1);
-    cell0.innerHTML = item.name;
-    cell1.innerHTML = item.duty;
-    cell2.innerHTML = item.starter;
-    cell3.innerHTML = item.dinner;
-    cell4.innerHTML = item.dessert;
-  });
+  if (data.message !== null) {
+    var message = document.getElementById("message");
+    message.innerHTML = data.message;
+    message.style.display = "block";
+  }
+  if (data.dateList.length > 0) {
+    var table = document.getElementById("scheduleTable");
+    $("#scheduleTable tr").remove();
+    var header = table.createTHead();
+    var headerRow = header.insertRow(0);
+    headerRow.insertCell(-1).innerHTML = "<b>Name</b>";
+    headerRow.insertCell(-1).innerHTML = "<b>Duty</b>";
+    headerRow.insertCell(-1).innerHTML = "<b>Starter</b>";
+    headerRow.insertCell(-1).innerHTML = "<b>Dinner</b>";
+    headerRow.insertCell(-1).innerHTML = "<b>Dessert</b>";
+    var body = table.createTBody();
+    $.each(data.dateList, function(key, item) {
+      var row = body.insertRow(0);
+      var cell0 = row.insertCell(-1);
+      var cell1 = row.insertCell(-1);
+      var cell2 = row.insertCell(-1);
+      var cell3 = row.insertCell(-1);
+      var cell4 = row.insertCell(-1);
+      cell0.innerHTML = formatNames(item.names);
+      cell1.innerHTML = item.duty;
+      cell2.innerHTML = item.starter;
+      cell3.innerHTML = item.dinner;
+      cell4.innerHTML = item.dessert;
+    });
+  }
 }
 
 function generateScheme() {

@@ -46,40 +46,73 @@ namespace Generator
         private List<Member> noStarterDateFound;
         private List<Member> noDessertDateFound;
         private List<Member> noDinnerDateFound;
-        public void createDates(List<Member> members, int count)
+        public void createDates(List<Member> members)
         {
             tempMembers = new List<Member>(members);
-            tempMembers.Shuffle();
-            double numberOfMembers = tempMembers.Count;
-            int numnerOfMembersPerDate = (int)Math.Round(numberOfMembers / 3);
+            List<Member> membersAss1 = tempMembers.FindAll(p => p.association == 0);
+            List<Member> membersAss2 = tempMembers.FindAll(p => p.association == 1);
 
-            List<Member> starter = new List<Member>(tempMembers.GetRange(0, numnerOfMembersPerDate));
-            List<Member> dinner = new List<Member>(tempMembers.GetRange(numnerOfMembersPerDate, numnerOfMembersPerDate));
-            List<Member> dessert = new List<Member>(tempMembers.GetRange((2 * numnerOfMembersPerDate), (tempMembers.Count - 2 * numnerOfMembersPerDate)));
+            membersAss1.Shuffle();
+            membersAss2.Shuffle();
+
+            double numberOfMembersAss1 = membersAss1.Count;
+            double numberOfMembersAss2 = membersAss2.Count;
+
+            int numnerOfMembersPerDateAss1 = (int)Math.Round(numberOfMembersAss1 / 3);
+            int numnerOfMembersPerDateAss2 = (int)Math.Round(numberOfMembersAss2 / 3);
+
+            List<Member> starterAss1 = new List<Member>(membersAss1.GetRange(0, numnerOfMembersPerDateAss1));
+            List<Member> dinnerAss1 = new List<Member>(membersAss1.GetRange(numnerOfMembersPerDateAss1, numnerOfMembersPerDateAss1));
+            List<Member> dessertAss1 = new List<Member>(membersAss1.GetRange((2 * numnerOfMembersPerDateAss1), ((int)numberOfMembersAss1 - 2 * numnerOfMembersPerDateAss1)));
+
+            List<Member> starterAss2 = new List<Member>(membersAss2.GetRange(0, numnerOfMembersPerDateAss2));
+            List<Member> dinnerAss2 = new List<Member>(membersAss2.GetRange(numnerOfMembersPerDateAss2, numnerOfMembersPerDateAss2));
+            List<Member> dessertAss2 = new List<Member>(membersAss2.GetRange((2 * numnerOfMembersPerDateAss2), ((int)numberOfMembersAss1 - 2 * numnerOfMembersPerDateAss2)));
+
             noDinnerDateFound = new List<Member>();
             noDessertDateFound = new List<Member>();
             noStarterDateFound = new List<Member>();
-
-            foreach(Member m in starter)
+            
+            // Try to find a dates where Ass1 members visits Ass2 members and vice versa 
+            foreach(Member m in starterAss1)
             {
                 m.duty = "Starter";
-                m.dinner = FindDate(m, dinner, "dinner");
-                m.dessert = FindDate(m, dessert, "dessert");
+                m.dinner = FindDate(m, dinnerAss2, "dinner");
+                m.dessert = FindDate(m, dessertAss2, "dessert");
             }
-            foreach (Member m in dinner)
+            foreach (Member m in dinnerAss1)
             {
                 m.duty = "Dinner";
-                m.starter = FindDate(m, starter, "starter");
-                m.dessert = FindDate(m, dessert, "dessert");
+                m.starter = FindDate(m, starterAss2, "starter");
+                m.dessert = FindDate(m, dessertAss2, "dessert");
             }
-            foreach (Member m in dessert)
+            foreach (Member m in dessertAss1)
             {
                 m.duty = "Dessert";
-                m.dinner = FindDate(m, dinner, "dinner");
-                m.starter = FindDate(m, starter, "starter");
+                m.dinner = FindDate(m, dinnerAss2, "dinner");
+                m.starter = FindDate(m, starterAss2, "starter");
             }
 
-            handleNoDatesFound(starter, dinner, dessert);
+            foreach (Member m in starterAss2)
+            {
+                m.duty = "Starter";
+                m.dinner = FindDate(m, dinnerAss1, "dinner");
+                m.dessert = FindDate(m, dessertAss1, "dessert");
+            }
+            foreach (Member m in dinnerAss2)
+            {
+                m.duty = "Dinner";
+                m.starter = FindDate(m, starterAss1, "starter");
+                m.dessert = FindDate(m, dessertAss1, "dessert");
+            }
+            foreach (Member m in dessertAss2)
+            {
+                m.duty = "Dessert";
+                m.dinner = FindDate(m, dinnerAss1, "dinner");
+                m.starter = FindDate(m, starterAss1, "starter");
+            }
+
+            handleNoDatesFound(starterAss1.Concat(starterAss2).ToList(), dinnerAss1.Concat(dinnerAss2).ToList(), dessertAss1.Concat(dessertAss2).ToList());
         }
 
         private Member FindDate(Member m, List<Member> list, string dateType)

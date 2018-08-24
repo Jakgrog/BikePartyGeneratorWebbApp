@@ -9,9 +9,14 @@ namespace Generator
         public JsonScheme createScheme(Memberhandler memberhandler)
         {
             List<Member> members = memberhandler.getMembers();
-            memberhandler.createDates(members, 0);
             JsonScheme scheme = new JsonScheme();
 
+            if (members.Count < 3)
+            {
+                scheme.message = "Too few participants :(, get more friends!";
+                return scheme;
+            }
+            memberhandler.createDates(members);
             foreach (Member m in members)
             { 
                 string starter = m.starter != null ? m.starter.printNames(): null;

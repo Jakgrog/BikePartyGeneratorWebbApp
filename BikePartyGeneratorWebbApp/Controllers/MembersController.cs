@@ -46,15 +46,14 @@ namespace BikePartyGeneratorWebbApp.Controllers
         [HttpPost]
         public IHttpActionResult AddMember([FromBody] JsonMember member)
         {
-            member.Id = id;
-            id = id + 1;
-
             if (member != null)
             {
+                member.Id = id;
+                id = id + 1;
+                member.names = member.names.FindAll(p => p != "");
                 members.Add(member);
             }
             return Ok(member);
-
         }
     }
 }

@@ -13,5 +13,7 @@ namespace BikePartyGeneratorWebbApp.Models
         {
             dateList = new List<JsonMember>();
         }
+
+        public string message { get; set; }
     }
 }
