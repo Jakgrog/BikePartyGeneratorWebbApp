@@ -59,8 +59,8 @@ C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikeParty
 C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\bin\System.Net.Http.Formatting.xml
 C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\bin\System.Web.Http.xml
 C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\bin\System.Web.Http.WebHost.xml
-C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\obj\Release\BikePartyGeneratorWebApp.csprojResolveAssemblyReference.cache
 C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\obj\Release\BikePartyGeneratorWebApp.csproj.CoreCompileInputs.cache
 C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\obj\Release\BikePartyGeneratorWebApp.csproj.CopyComplete
 C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\obj\Release\BikePartyGeneratorWebbApp.dll
 C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\obj\Release\BikePartyGeneratorWebbApp.pdb
+C:\Users\Jakob\Documents\Projekt\cykelfestgenerator\BikePartyGenerator\BikePartyGeneratorWebbApp\BikePartyGeneratorWebbApp\obj\Release\BikePartyGeneratorWebApp.csprojAssemblyReference.cache

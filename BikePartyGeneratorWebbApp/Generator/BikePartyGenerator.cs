@@ -22,7 +22,6 @@ namespace Generator
 
         public JsonScheme generate()
         {
-            memberhandler.printAllMembers();
             scheme = new Scheme();
             JsonScheme resultingScheme = scheme.createScheme(memberhandler);
             return resultingScheme;

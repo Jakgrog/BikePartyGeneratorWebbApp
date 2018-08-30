@@ -4,6 +4,9 @@ var uriGen = 'api/generator';
 
 function formatNames(item) {
   var formatedNamesString = '';
+  if(item === null){
+    return formatedNamesString;
+  }
   for (var i = 0; i < item.length; i++) {
     if (i === item.length - 1 && item.length > 1) {
       formatedNamesString += ' and ';
@@ -134,9 +137,9 @@ function createTable(data) {
       var cell4 = row.insertCell(-1);
       cell0.innerHTML = formatNames(item.names);
       cell1.innerHTML = item.duty;
-      cell2.innerHTML = item.starter;
-      cell3.innerHTML = item.dinner;
-      cell4.innerHTML = item.dessert;
+      cell2.innerHTML = formatNames(item.starter);
+      cell3.innerHTML = formatNames(item.dinner);
+      cell4.innerHTML = formatNames(item.dessert);
     });
   }
 }

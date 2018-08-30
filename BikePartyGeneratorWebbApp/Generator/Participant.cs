@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Generator
 {
-    public class Member
+    public class Member : ICloneable
     {
         public int ID;
         public List<Member> schedule;
@@ -30,15 +31,26 @@ namespace Generator
             this.dessert = null;
         }
 
+        public object Clone()
+        {
+            Member newMember = (Member)this.MemberwiseClone();
+            newMember.starter = this.starter != null ? (Member)this.starter.Clone() : null;
+            newMember.dinner = this.dinner != null ? (Member)this.dinner.Clone() : null;
+            newMember.dessert = this.dessert != null ? (Member)this.dessert.Clone() : null;
+            newMember.party = new List<int>(this.party);
+            newMember.allReadyMet = new List<int>(this.allReadyMet);
+
+            return newMember;
+        }
         public string address { get; set; }
         public string phone { get; set; }
         public int association { get; set; }
         public List<int> party { get; set; }
         public List<int> allReadyMet { get; set; }
 
-        public bool PartyNotFull()
+        public bool isFull()
         {
-            return party.Count < 3;
+            return party.Count > 3;
         }
 
         public string printNames()

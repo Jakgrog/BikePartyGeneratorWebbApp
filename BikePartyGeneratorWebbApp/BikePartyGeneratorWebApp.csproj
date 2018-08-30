@@ -82,8 +82,14 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="BPGServerAPI.js" />
+    <Content Include="getschedule.html" />
     <Content Include="Global.asax" />
     <Content Include="index.html" />
+    <Content Include="navbar-template.html" />
+    <Content Include="CSS\navbar.css" />
+    <Content Include="registration.html" />
+    <Content Include="CSS\registrationForm.css" />
+    <Content Include="CSS\schedule.css" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +110,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\CustomProfile1.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -14,8 +14,8 @@ namespace BikePartyGeneratorWebbApp.Models
         public int association { get; set; }
         public string duty { get; set; }
 
-        public string dinner { get; set; }
-        public string starter { get; set; }
-        public string dessert { get; set; }
+        public List<string> dinner { get; set; }
+        public List<string> starter { get; set; }
+        public List<string> dessert { get; set; }
     }
 }

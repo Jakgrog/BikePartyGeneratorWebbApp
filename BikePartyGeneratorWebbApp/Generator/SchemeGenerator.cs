@@ -16,12 +16,12 @@ namespace Generator
                 scheme.message = "Too few participants :(, get more friends!";
                 return scheme;
             }
-            memberhandler.createDates(members);
+            members = memberhandler.createDates(members);
             foreach (Member m in members)
-            { 
-                string starter = m.starter != null ? m.starter.printNames(): null;
-                string dinner = m.dinner != null ? m.dinner.printNames(): null;
-                string dessert = m.dessert != null ? m.dessert.printNames() : null;
+            {
+                List<string> starter = m.starter != null ? m.starter.getNames() : null;
+                List<string> dinner = m.dinner != null ? m.dinner.getNames() : null;
+                List<string> dessert = m.dessert != null ? m.dessert.getNames() : null;
 
                 JsonMember member = new JsonMember();
                 member.names = m.getNames();

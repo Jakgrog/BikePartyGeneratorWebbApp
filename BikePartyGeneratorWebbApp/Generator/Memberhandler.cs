@@ -35,189 +35,241 @@ namespace Generator
                 Debug.WriteLine(member.printNames());
         }
 
+        private class Node
+        {
+            public int error;
+            public int cost;
+            public List<Member> members;
+            public int x;
+            public int y;
+            public int z;
+            public int Id;
+            public Node(int x, int y, int z, int id, List<Member> members, int cost, int error)
+            {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.members = members;
+                this.cost = cost;
+                this.error = error;
+                this.Id = id;
+            }
+        }
+
         /// <summary>
         /// Tries to create a scheme where no group meets the same group twice.
-        /// This is done by shuffling the members list and matching the groups
-        /// according to a very specific pattern (hence all the if-statements).
+        /// This is done by shuffling the members list and matching the groups.
+        /// The function also tries to mix the associations as much as possible
+        /// so that members in association 1 goes to members in ass2 and vice versa.
         /// </summary>
         /// <param name="members"></param>
-        /// <param name="count"></param>
+        /// 
 
-        private List<Member> noStarterDateFound;
-        private List<Member> noDessertDateFound;
-        private List<Member> noDinnerDateFound;
-        public void createDates(List<Member> members)
+        public List<Member> createDates(List<Member> members)
         {
             tempMembers = new List<Member>(members);
-            List<Member> membersAss1 = tempMembers.FindAll(p => p.association == 0);
-            List<Member> membersAss2 = tempMembers.FindAll(p => p.association == 1);
+            double numberOfMembers = tempMembers.Count;
+            tempMembers.Shuffle();
 
-            membersAss1.Shuffle();
-            membersAss2.Shuffle();
+            int numnerOfMembersPerDateAss1 = (int)Math.Round(numberOfMembers / 3);
 
-            double numberOfMembersAss1 = membersAss1.Count;
-            double numberOfMembersAss2 = membersAss2.Count;
+            List<Member> starter = tempMembers.GetRange(0, numnerOfMembersPerDateAss1);
+            List<Member> dinner = tempMembers.GetRange(numnerOfMembersPerDateAss1, numnerOfMembersPerDateAss1);
+            List<Member> dessert = tempMembers.GetRange((2 * numnerOfMembersPerDateAss1), ((int)numberOfMembers - 2 * numnerOfMembersPerDateAss1));
 
-            int numnerOfMembersPerDateAss1 = (int)Math.Round(numberOfMembersAss1 / 3);
-            int numnerOfMembersPerDateAss2 = (int)Math.Round(numberOfMembersAss2 / 3);
+            starter.ForEach(p => p.duty = "starter");
+            dinner.ForEach(p => p.duty = "dinner");
+            dessert.ForEach(p => p.duty = "dessert");
 
-            List<Member> starterAss1 = new List<Member>(membersAss1.GetRange(0, numnerOfMembersPerDateAss1));
-            List<Member> dinnerAss1 = new List<Member>(membersAss1.GetRange(numnerOfMembersPerDateAss1, numnerOfMembersPerDateAss1));
-            List<Member> dessertAss1 = new List<Member>(membersAss1.GetRange((2 * numnerOfMembersPerDateAss1), ((int)numberOfMembersAss1 - 2 * numnerOfMembersPerDateAss1)));
-
-            List<Member> starterAss2 = new List<Member>(membersAss2.GetRange(0, numnerOfMembersPerDateAss2));
-            List<Member> dinnerAss2 = new List<Member>(membersAss2.GetRange(numnerOfMembersPerDateAss2, numnerOfMembersPerDateAss2));
-            List<Member> dessertAss2 = new List<Member>(membersAss2.GetRange((2 * numnerOfMembersPerDateAss2), ((int)numberOfMembersAss1 - 2 * numnerOfMembersPerDateAss2)));
-
-            noDinnerDateFound = new List<Member>();
-            noDessertDateFound = new List<Member>();
-            noStarterDateFound = new List<Member>();
-            
-            // Try to find a dates where Ass1 members visits Ass2 members and vice versa 
-            foreach(Member m in starterAss1)
-            {
-                m.duty = "Starter";
-                m.dinner = FindDate(m, dinnerAss2, "dinner");
-                m.dessert = FindDate(m, dessertAss2, "dessert");
-            }
-            foreach (Member m in dinnerAss1)
-            {
-                m.duty = "Dinner";
-                m.starter = FindDate(m, starterAss2, "starter");
-                m.dessert = FindDate(m, dessertAss2, "dessert");
-            }
-            foreach (Member m in dessertAss1)
-            {
-                m.duty = "Dessert";
-                m.dinner = FindDate(m, dinnerAss2, "dinner");
-                m.starter = FindDate(m, starterAss2, "starter");
-            }
-
-            foreach (Member m in starterAss2)
-            {
-                m.duty = "Starter";
-                m.dinner = FindDate(m, dinnerAss1, "dinner");
-                m.dessert = FindDate(m, dessertAss1, "dessert");
-            }
-            foreach (Member m in dinnerAss2)
-            {
-                m.duty = "Dinner";
-                m.starter = FindDate(m, starterAss1, "starter");
-                m.dessert = FindDate(m, dessertAss1, "dessert");
-            }
-            foreach (Member m in dessertAss2)
-            {
-                m.duty = "Dessert";
-                m.dinner = FindDate(m, dinnerAss1, "dinner");
-                m.starter = FindDate(m, starterAss1, "starter");
-            }
-
-            handleNoDatesFound(starterAss1.Concat(starterAss2).ToList(), dinnerAss1.Concat(dinnerAss2).ToList(), dessertAss1.Concat(dessertAss2).ToList());
+            return Djikstra(tempMembers);
         }
 
-        private Member FindDate(Member m, List<Member> list, string dateType)
+        private List<Member> Djikstra(List<Member> initMembers)
         {
-            Member date = list.Where(x => !AllReadyMet(m, x.party) && x.PartyNotFull()).FirstOrDefault();
-            if (date != null)
+            List<Node> OPEN = new List<Node>();
+            List<Node> CLOSE = new List<Node>();
+
+            int z = 0;
+            int id = 0;
+            Node currentNode = new Node(0, 0, 0, z, initMembers, 10, 0);
+            OPEN.Add(currentNode);
+            int goal = initMembers.Count * 2;
+
+            while (true)
             {
-                switch (dateType)
+                if (OPEN.Count > 0)
+                    currentNode = getNodeWithLowestCost(OPEN);
+                else
                 {
-                    case "starter":
-                        m.starter = date;
-                        registerDate(m, date);
-                        break;
-                    case "dinner":
-                        m.dinner = date;
-                        registerDate(m, date);
-                        break;
-                    case "dessert":
-                        m.dessert = date;
-                        registerDate(m, date);
-                        break;
+                    Debug.WriteLine("Out of nodes");
+                    return currentNode.members;
+                }
+                    
+                OPEN.Remove(currentNode);
+                CLOSE.Add(currentNode);
+                List<Member> members = currentNode.members;
+                //Debug.WriteLine("Z: " + currentNode.z + ", Branch " + currentNode.Id + " Error " + currentNode.error + " Cost " + currentNode.cost);
+                //Debug.WriteLine("Node: " + currentNode.x + " - " + currentNode.y);
+
+                if (currentNode.z == goal)
+                {
+                    Debug.WriteLine("Z: " + currentNode.z);
+                    Debug.WriteLine("Error: " + currentNode.error);
+                    Debug.WriteLine("Cost: " + currentNode.cost);
+                    currentNode.members.ForEach(p => p.allReadyMet.ForEach(l => Debug.WriteLine(p.ID + ": " + l)));
+                    return currentNode.members;
+                }
+
+               OPEN.Remove(currentNode);
+                //CLOSE.Add(currentNode);
+
+                int numerOfmembers = members.Count;
+                int newZ = currentNode.z + 1;
+
+                for (int i = 0; i < numerOfmembers; i++)
+                {
+                    for (int j = 0; j < numerOfmembers; j++)
+                    {
+                        List<Member> membersClone = members.Clone();
+                        int groupsize = 2;
+                        if (goal - newZ <= (numerOfmembers % (groupsize+1))*2)
+                        {
+                            groupsize++;
+                        }
+                        bool possibleMatch = findMatch(membersClone[i], membersClone[j], groupsize);
+
+                        if (!possibleMatch)
+                        {
+                            continue;
+                        }
+
+                        int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], currentNode.error, currentNode.cost, (goal - newZ), groupsize);
+                        int cost = errorAndCost[1];
+                        int error = errorAndCost[0];
+                        registerDate(membersClone[i], membersClone[j], membersClone);
+
+                        if (newZ == goal){ Debug.WriteLine("Cost: " + cost + ", error: " + error + ", Groupsize: " + groupsize); }
+
+                        Node currentNeighbour = new Node(i, j, newZ, id, membersClone, cost, error);
+                        OPEN.Add(currentNeighbour);
+                        id++;
+                    }
                 }
             }
-            else
-            {
-                switch (dateType)
-                {
-                    case "starter":
-                        this.noStarterDateFound.Add(m);
-                        break;
-                    case "dinner":
-                        this.noDinnerDateFound.Add(m);
-                        break;
-                    case "dessert":
-                        this.noDessertDateFound.Add(m);
-                        break;
-                }
-            }
-            return date;
         }
 
-        private bool AllReadyMet(Member memb, List<int> party)
+        private Node getNodeWithLowestCost(List<Node> nodes)
         {
+            Node minCostNode = nodes[0];
+            foreach (var node in nodes)
+            {
+
+                if (node.cost < minCostNode.cost)
+                    minCostNode = node;
+            }
+            return minCostNode;
+        }
+
+        private int[] calculateCost(Member m, Member date, int initError, int initCost, int distanceToGoal, int groupsize)
+        {
+            int fullParty = 0;
+            int associationCost = m.association != date.association ? 0 : 1;
+
+            if (date.party.Count > groupsize)
+            {
+                fullParty = date.party.Count - groupsize;
+            }
+            int returnCost = AllReadyMet(m, date.party) * 40 + fullParty * 40 + distanceToGoal;// + associationCost;
+            int returnError = AllReadyMet(m, date.party) + fullParty + initError; //+ associationCost;
+            int[] returnArray = new int[] { returnError, returnCost };
+            return returnArray;
+        }
+
+        private void registerDate(Member visitor, Member host, List<Member> members)
+        {
+            foreach(int membID in host.party)
+            {
+                Member partymemb = members.FirstOrDefault(m => m.ID == membID);
+                partymemb.allReadyMet.Add(visitor.ID);
+                visitor.allReadyMet.Add(membID);
+            }
+            host.party.Add(visitor.ID);
+        }
+
+        private int AllReadyMet(Member memb, List<int> party)
+        {
+            int numberOfMembersAllreadyMet = 0;
             foreach (int membID in party)
             {
-                if (memb.allReadyMet.FirstOrDefault(x => x == membID) != 0)
-                {
-                    return true;
-                }
+                numberOfMembersAllreadyMet = memb.allReadyMet.FirstOrDefault(x => x == membID) != 0 ? numberOfMembersAllreadyMet + 2 : numberOfMembersAllreadyMet;
             }
-            return false;
+            return numberOfMembersAllreadyMet;
         }
-        private void registerDate(Member m, Member date)
+
+        private bool findMatch(Member visitor, Member host, int groupsize)
         {
-            m.allReadyMet.Add(date.ID);
-            date.allReadyMet.Add(m.ID);
-            date.party.Add(m.ID);
+            if (host.party.Count > groupsize)
+            {
+                return false;
+            }
+            switch (visitor.duty)
+            {
+                case "dinner":
+                    if(visitor.starter == null && host.duty == "starter")
+                    {
+                        visitor.starter = host;
+                        return true;
+                    } else if(visitor.dessert == null && host.duty == "dessert")
+                    {
+                        visitor.dessert = host;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                case "dessert":
+                    if (visitor.starter == null && host.duty == "starter")
+                    {
+                        visitor.starter = host;
+                        return true;
+                    }
+                    else if (visitor.dinner == null && host.duty == "dinner")
+                    {
+                        visitor.dinner = host;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                case "starter":
+                    if (visitor.dinner == null && host.duty == "dinner")
+                    {
+                        visitor.dinner = host;
+                        return true;
+                    }
+                    else if (visitor.dessert == null && host.duty == "dessert")
+                    {
+                        visitor.dessert = host;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                default:
+                    return false;
+            }
         }
-
-        private void handleNoDatesFound(List<Member> starter, List<Member> dinner, List<Member> dessert)
-        {
-            List<Member> tempList;
-            int index;
-
-            if (this.noStarterDateFound != null)
-            {
-                tempList = new List<Member>(starter);
-                tempList.Shuffle();
-                index = 0;
-                foreach (Member m in this.noStarterDateFound)
-                {
-                    m.starter = starter[index];
-                    index = index < starter.Count-1 ? index + 1 : 0;
-                }
-            }
-
-            if (this.noDinnerDateFound != null)
-            {
-                tempList = new List<Member>(dinner);
-                tempList.Shuffle();
-                index = 0;
-                foreach (Member m in this.noDinnerDateFound)
-                {
-                    m.dinner = dinner[index];
-                    index = index < dinner.Count-1 ? index + 1 : 0;
-                }
-            }
-
-            if (this.noDessertDateFound != null)
-            {
-                tempList = new List<Member>(dessert);
-                tempList.Shuffle();
-                index = 0;
-                foreach (Member m in this.noDessertDateFound)
-                {
-                    m.dessert = dessert[index];
-                    index = index < dessert.Count-1 ? index + 1 : 0;
-                }
-            }
-        }
-        
     }
 
     static class Extensions
     {
+        public static List<T> Clone<T>(this IList<T> listToClone) where T : ICloneable
+        {
+            return listToClone.Select(item => (T)item.Clone()).ToList();
+        }
         public static void Shuffle<T>(this IList<T> list)
         {
             Random rng = new Random();

@@ -11,7 +11,7 @@ namespace BikePartyGeneratorWebbApp.Controllers
     public class MembersController : ApiController
     {
         private static List<JsonMember> members = new List<JsonMember>();
-        private static int id = 0;
+        private static int id = 1;
 
         public List<JsonMember> GetAllMembers()
         {
