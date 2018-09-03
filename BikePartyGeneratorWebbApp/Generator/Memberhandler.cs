@@ -141,23 +141,23 @@ namespace Generator
                 {
                     for (int j = 0; j < numerOfmembers; j++)
                     {
-                        List<Member> membersClone = members.Clone();
-                        int groupsize = 2;
-                        Tuple<int, int> date = new Tuple<int, int>(i, j);
-
-                        if (goal - newZ < (numerOfmembers % (groupsize+1))*2)
-                        {
-                            groupsize++;
-                        }
-                        bool possibleMatch = findMatch(membersClone[i], membersClone[j], groupsize);
-                        Tuple<int, int> datefound = currentNode.datesFound.FirstOrDefault(n => n.Item1 == i && n.Item2 == j);
-                        bool allreadyRegistered = datefound != null;
-                        if (!possibleMatch || allreadyRegistered)
+                        bool allreadyRegistered = currentNode.datesFound.FirstOrDefault(n => n.Item1 == i && n.Item2 == j) != null;
+                        if (allreadyRegistered)
                         {
                             continue;
                         }
 
-                        if (releaseCounter == 500000)
+                        List<Member> membersClone = members.Clone();
+                        int groupsize = 2;
+                        groupsize = (goal - newZ) < (numerOfmembers % (groupsize + 1)) * 2 ? groupsize + 1 : groupsize;
+
+                        bool possibleMatch = findMatch(membersClone[i], membersClone[j], groupsize);
+                        if (!possibleMatch)
+                        {
+                            continue;
+                        }
+
+                        if (releaseCounter == 5000)
                         {
                             release++;
                             releaseCounter = 0;
@@ -168,6 +168,7 @@ namespace Generator
                         else
                             releaseCounter++;
 
+                        Tuple<int, int> date = new Tuple<int, int>(i, j);
                         int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], goal, (goal - newZ), groupsize, release);
                         int cost = errorAndCost[0];
                         int allreadyMet = errorAndCost[1];
