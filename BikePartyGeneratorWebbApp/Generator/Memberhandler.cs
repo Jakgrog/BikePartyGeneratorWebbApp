@@ -37,22 +37,25 @@ namespace Generator
 
         private class Node
         {
-            public int error;
+            public int allreadyMet = 0;
             public int cost;
             public List<Member> members;
+            public List<Tuple<int, int>> datesFound;
             public int x;
             public int y;
             public int z;
             public int Id;
-            public Node(int x, int y, int z, int id, List<Member> members, int cost, int error)
+            internal int associationCost = 0;
+
+            public Node(int x, int y, int z, int id, List<Member> members, List<Tuple<int, int>> dates, int cost)
             {
                 this.x = x;
                 this.y = y;
                 this.z = z;
                 this.members = members;
                 this.cost = cost;
-                this.error = error;
                 this.Id = id;
+                this.datesFound = dates;
             }
         }
 
@@ -89,24 +92,31 @@ namespace Generator
             List<Node> OPEN = new List<Node>();
             List<Node> CLOSE = new List<Node>();
 
+            int highestZ = 0;
+
             int z = 0;
             int id = 0;
-            Node currentNode = new Node(0, 0, 0, z, initMembers, 10, 0);
-            OPEN.Add(currentNode);
+            int releaseCounter = 0;
+            int release = 0;
             int goal = initMembers.Count * 2;
+            Node backupNode = new Node(0, 0, 0, z, initMembers, new List<Tuple<int, int>>(), 500);
+            Node currentNode = new Node(0, 0, 0, z, initMembers, new List<Tuple<int, int>>(), 500);
+            OPEN.Add(currentNode);
 
             while (true)
             {
                 if (OPEN.Count > 0)
+                {
                     currentNode = getNodeWithLowestCost(OPEN);
+                    OPEN.Remove(currentNode);
+                }
                 else
                 {
-                    Debug.WriteLine("Out of nodes");
-                    return currentNode.members;
+                    currentNode = backupNode;
+                    Debug.WriteLine("Out of nodes: " + ", Z: " + currentNode.z +" Error " + currentNode.allreadyMet + " Cost " + currentNode.cost);
                 }
                     
-                OPEN.Remove(currentNode);
-                CLOSE.Add(currentNode);
+
                 List<Member> members = currentNode.members;
                 //Debug.WriteLine("Z: " + currentNode.z + ", Branch " + currentNode.Id + " Error " + currentNode.error + " Cost " + currentNode.cost);
                 //Debug.WriteLine("Node: " + currentNode.x + " - " + currentNode.y);
@@ -114,7 +124,8 @@ namespace Generator
                 if (currentNode.z == goal)
                 {
                     Debug.WriteLine("Z: " + currentNode.z);
-                    Debug.WriteLine("Error: " + currentNode.error);
+                    Debug.WriteLine("Allready met: " + currentNode.allreadyMet);
+                    Debug.WriteLine("Association error: " + currentNode.associationCost);
                     Debug.WriteLine("Cost: " + currentNode.cost);
                     currentNode.members.ForEach(p => p.allReadyMet.ForEach(l => Debug.WriteLine(p.ID + ": " + l)));
                     return currentNode.members;
@@ -132,27 +143,57 @@ namespace Generator
                     {
                         List<Member> membersClone = members.Clone();
                         int groupsize = 2;
-                        if (goal - newZ <= (numerOfmembers % (groupsize+1))*2)
+                        Tuple<int, int> date = new Tuple<int, int>(i, j);
+
+                        if (goal - newZ < (numerOfmembers % (groupsize+1))*2)
                         {
                             groupsize++;
                         }
                         bool possibleMatch = findMatch(membersClone[i], membersClone[j], groupsize);
-
-                        if (!possibleMatch)
+                        Tuple<int, int> datefound = currentNode.datesFound.FirstOrDefault(n => n.Item1 == i && n.Item2 == j);
+                        bool allreadyRegistered = datefound != null;
+                        if (!possibleMatch || allreadyRegistered)
                         {
                             continue;
                         }
 
-                        int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], currentNode.error, currentNode.cost, (goal - newZ), groupsize);
-                        int cost = errorAndCost[1];
-                        int error = errorAndCost[0];
+                        if (releaseCounter == 500000)
+                        {
+                            release++;
+                            releaseCounter = 0;
+                        }
+
+                        if (newZ > highestZ)
+                            releaseCounter = 0;
+                        else
+                            releaseCounter++;
+
+                        int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], goal, (goal - newZ), groupsize, release);
+                        int cost = errorAndCost[0];
+                        int allreadyMet = errorAndCost[1];
+                        List<Tuple<int, int>> dates = new List<Tuple<int, int>>(currentNode.datesFound);
+                        dates.Add(date);
+                        Node currentNeighbour = new Node(i, j, newZ, id, membersClone, dates, cost);
+                        currentNeighbour.allreadyMet = currentNode.allreadyMet + errorAndCost[1];
+                        currentNeighbour.associationCost = currentNode.associationCost + errorAndCost[2];
                         registerDate(membersClone[i], membersClone[j], membersClone);
 
-                        if (newZ == goal){ Debug.WriteLine("Cost: " + cost + ", error: " + error + ", Groupsize: " + groupsize); }
-
-                        Node currentNeighbour = new Node(i, j, newZ, id, membersClone, cost, error);
-                        OPEN.Add(currentNeighbour);
-                        id++;
+                        if (cost < currentNode.cost)
+                        {
+                            //Debug.WriteLine("Z: " + newZ + ", Cost: " + cost + ", error: " + error + ", currentCost: " + currentNode.cost + ", groupsize: " + groupsize);
+                            OPEN.Add(currentNeighbour);
+                            id++;
+                        }
+                        else if(newZ > highestZ)
+                        {
+                            backupNode = currentNeighbour;
+                            highestZ = newZ;
+                            //Debug.WriteLine("Added to closed: " + ", Z: " + newZ + ", cost: " + cost + ", old cost: " + currentNode.cost);
+                        }
+                        else if(newZ == highestZ && cost < backupNode.cost)
+                        {
+                            backupNode = currentNeighbour;
+                        }
                     }
                 }
             }
@@ -170,18 +211,17 @@ namespace Generator
             return minCostNode;
         }
 
-        private int[] calculateCost(Member m, Member date, int initError, int initCost, int distanceToGoal, int groupsize)
+        private int[] calculateCost(Member m, Member date, int goal, int distanceToGoal, int groupsize, int release)
         {
-            int fullParty = 0;
-            int associationCost = m.association != date.association ? 0 : 1;
+            int associationCost = m.association != date.association || release > 1 ? 0 : 1;
+            int associationError = m.association != date.association ? 0 : 1;
 
-            if (date.party.Count > groupsize)
-            {
-                fullParty = date.party.Count - groupsize;
-            }
-            int returnCost = AllReadyMet(m, date.party) * 40 + fullParty * 40 + distanceToGoal;// + associationCost;
-            int returnError = AllReadyMet(m, date.party) + fullParty + initError; //+ associationCost;
-            int[] returnArray = new int[] { returnError, returnCost };
+            int emptyParty = date.party.Count < 2 && release < date.party.Count ? (2 - date.party.Count - release) * goal * 2 : 0;
+            int allReadyMet = AllReadyMet(m, date.party);
+            int allReadyMetCost = allReadyMet > release ? (allReadyMet - release)* goal * 2 : 0;
+
+            int returnCost = allReadyMetCost + emptyParty + distanceToGoal + associationCost;
+            int[] returnArray = new int[] { returnCost, allReadyMet, associationError };
             return returnArray;
         }
 
