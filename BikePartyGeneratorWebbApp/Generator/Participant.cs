@@ -34,9 +34,9 @@ namespace Generator
         public object Clone()
         {
             Member newMember = (Member)this.MemberwiseClone();
-            newMember.starter = this.starter != null ? (Member)this.starter.Clone() : null;
-            newMember.dinner = this.dinner != null ? (Member)this.dinner.Clone() : null;
-            newMember.dessert = this.dessert != null ? (Member)this.dessert.Clone() : null;
+            newMember.starter = this.starter != null ? (Member)this.starter : null;
+            newMember.dinner = this.dinner != null ? (Member)this.dinner : null;
+            newMember.dessert = this.dessert != null ? (Member)this.dessert : null;
             newMember.party = new List<int>(this.party);
             newMember.allReadyMet = new List<int>(this.allReadyMet);
 
@@ -51,6 +51,21 @@ namespace Generator
         public bool isFull()
         {
             return party.Count > 3;
+        }
+
+        public bool allDatesFound()
+        {
+            switch (this.duty)
+            {
+                case "dinner":
+                    return this.dessert != null && this.starter != null;
+                case "dessert":
+                    return this.dinner != null && this.starter != null;
+                case "starter":
+                    return this.dessert != null && this.dinner != null;
+                default:
+                    return false;
+            }
         }
 
         public string printNames()

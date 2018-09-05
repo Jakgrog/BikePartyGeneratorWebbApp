@@ -42,15 +42,13 @@ namespace Generator
             public List<Member> members;
             public List<Tuple<int, int>> datesFound;
             public int x;
-            public int y;
             public int z;
             public int Id;
             internal int associationCost = 0;
 
-            public Node(int x, int y, int z, int id, List<Member> members, List<Tuple<int, int>> dates, int cost)
+            public Node(int x, int z, int id, List<Member> members, List<Tuple<int, int>> dates, int cost)
             {
                 this.x = x;
-                this.y = y;
                 this.z = z;
                 this.members = members;
                 this.cost = cost;
@@ -84,44 +82,46 @@ namespace Generator
             dinner.ForEach(p => p.duty = "dinner");
             dessert.ForEach(p => p.duty = "dessert");
 
-            return Djikstra(tempMembers);
+            return Djikstra(tempMembers, starter.Count, dinner.Count, dessert.Count, numnerOfMembersPerDateAss1);
         }
 
-        private List<Member> Djikstra(List<Member> initMembers)
+        private List<Member> Djikstra(List<Member> initMembers, int starterNum, int dinnerNum, int dessertNum, int numnerOfMembersPerDateAss1)
         {
             List<Node> OPEN = new List<Node>();
             List<Node> CLOSE = new List<Node>();
+
+            int groupsizeStarter = starterNum % numnerOfMembersPerDateAss1 == 0 ? 2 : (int)Math.Floor((double)((dinnerNum + dessertNum) / starterNum));
+            int groupsizeDinner = dinnerNum % numnerOfMembersPerDateAss1 == 0 ? 2 : (int)Math.Floor((double)((starterNum + dessertNum) / dinnerNum));
+            int groupsizeDessert = dessertNum % numnerOfMembersPerDateAss1 == 0 ? 2 : (int)Math.Floor((double)((dinnerNum + starterNum) / dessertNum));
 
             int highestZ = 0;
 
             int z = 0;
             int id = 0;
-            int releaseCounter = 0;
-            int release = 0;
             int goal = initMembers.Count * 2;
-            Node backupNode = new Node(0, 0, 0, z, initMembers, new List<Tuple<int, int>>(), 500);
-            Node currentNode = new Node(0, 0, 0, z, initMembers, new List<Tuple<int, int>>(), 500);
+            Node backupNode = new Node(0, 0, z, initMembers, new List<Tuple<int, int>>(), 500);
+            Node currentNode = new Node(0, 0, z, initMembers, new List<Tuple<int, int>>(), 500);
             OPEN.Add(currentNode);
 
             while (true)
             {
-                if (OPEN.Count > 0)
+                if (OPEN.Count > 0 && currentNode.datesFound.Count != goal)
                 {
                     currentNode = getNodeWithLowestCost(OPEN);
                     OPEN.Remove(currentNode);
                 }
-                else
+                else if(currentNode.datesFound.Count != goal)
                 {
-                    currentNode = backupNode;
-                    Debug.WriteLine("Out of nodes: " + ", Z: " + currentNode.z +" Error " + currentNode.allreadyMet + " Cost " + currentNode.cost);
+                    currentNode = getNodeWithLowestCost(CLOSE);
+                    Debug.WriteLine("Ops");
+                    currentNode.cost = 1000;
                 }
-                    
 
                 List<Member> members = currentNode.members;
                 //Debug.WriteLine("Z: " + currentNode.z + ", Branch " + currentNode.Id + " Error " + currentNode.error + " Cost " + currentNode.cost);
                 //Debug.WriteLine("Node: " + currentNode.x + " - " + currentNode.y);
 
-                if (currentNode.z == goal)
+                if (currentNode.datesFound.Count == goal)
                 {
                     Debug.WriteLine("Z: " + currentNode.z);
                     Debug.WriteLine("Allready met: " + currentNode.allreadyMet);
@@ -131,14 +131,19 @@ namespace Generator
                     return currentNode.members;
                 }
 
-               OPEN.Remove(currentNode);
-                //CLOSE.Add(currentNode);
+                OPEN.Remove(currentNode);
 
                 int numerOfmembers = members.Count;
-                int newZ = currentNode.z + 1;
-
                 for (int i = 0; i < numerOfmembers; i++)
                 {
+                    List<Member> membersClone = members.Clone();
+                    if (membersClone[i].allDatesFound())
+                        continue;
+
+                    List<Tuple<int, int>> dates = new List<Tuple<int, int>>(currentNode.datesFound);
+                    int cost = 0;
+                    int allreadyMet = 0;
+                    int associationcost = 0;
                     for (int j = 0; j < numerOfmembers; j++)
                     {
                         bool allreadyRegistered = currentNode.datesFound.FirstOrDefault(n => n.Item1 == i && n.Item2 == j) != null;
@@ -147,9 +152,19 @@ namespace Generator
                             continue;
                         }
 
-                        List<Member> membersClone = members.Clone();
                         int groupsize = 2;
-                        groupsize = (goal - newZ) < (numerOfmembers % (groupsize + 1)) * 2 ? groupsize + 1 : groupsize;
+                        if (membersClone[j].duty == "starter")
+                            groupsize = groupsizeStarter;
+                        else if (membersClone[j].duty == "dinner")
+                            groupsize = groupsizeDinner;
+                        else if(membersClone[j].duty == "dessert")
+                            groupsize = groupsizeDessert;
+
+                        int whenToIncreaseGroupsize = 2 * numerOfmembers - groupsizeDinner * dinnerNum - groupsizeDessert * dessertNum - groupsizeStarter * starterNum;
+                        if(whenToIncreaseGroupsize == 0)
+                            groupsize = (goal - dates.Count) <= (numerOfmembers % (groupsize + 1)) * 2 ? groupsize + 1 : groupsize;
+                        else
+                            groupsize = (goal - dates.Count) <= whenToIncreaseGroupsize ? groupsize + 1 : groupsize;
 
                         bool possibleMatch = findMatch(membersClone[i], membersClone[j], groupsize);
                         if (!possibleMatch)
@@ -157,44 +172,34 @@ namespace Generator
                             continue;
                         }
 
-                        if (releaseCounter == 5000)
-                        {
-                            release++;
-                            releaseCounter = 0;
-                        }
-
-                        if (newZ > highestZ)
-                            releaseCounter = 0;
-                        else
-                            releaseCounter++;
-
                         Tuple<int, int> date = new Tuple<int, int>(i, j);
-                        int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], goal, (goal - newZ), groupsize, release);
-                        int cost = errorAndCost[0];
-                        int allreadyMet = errorAndCost[1];
-                        List<Tuple<int, int>> dates = new List<Tuple<int, int>>(currentNode.datesFound);
                         dates.Add(date);
-                        Node currentNeighbour = new Node(i, j, newZ, id, membersClone, dates, cost);
-                        currentNeighbour.allreadyMet = currentNode.allreadyMet + errorAndCost[1];
-                        currentNeighbour.associationCost = currentNode.associationCost + errorAndCost[2];
-                        registerDate(membersClone[i], membersClone[j], membersClone);
 
-                        if (cost < currentNode.cost)
-                        {
-                            //Debug.WriteLine("Z: " + newZ + ", Cost: " + cost + ", error: " + error + ", currentCost: " + currentNode.cost + ", groupsize: " + groupsize);
-                            OPEN.Add(currentNeighbour);
-                            id++;
-                        }
-                        else if(newZ > highestZ)
-                        {
-                            backupNode = currentNeighbour;
-                            highestZ = newZ;
-                            //Debug.WriteLine("Added to closed: " + ", Z: " + newZ + ", cost: " + cost + ", old cost: " + currentNode.cost);
-                        }
-                        else if(newZ == highestZ && cost < backupNode.cost)
-                        {
-                            backupNode = currentNeighbour;
-                        }
+                        int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], goal, (goal - dates.Count), associationcost);
+                        cost = cost + errorAndCost[0];
+                        allreadyMet = allreadyMet + errorAndCost[1];
+                        associationcost = associationcost + errorAndCost[2];
+                        registerDate(membersClone[i], membersClone[j], membersClone);
+                    }
+
+                    Node currentNeighbour = new Node(i, dates.Count, id, membersClone, dates, cost);
+                    currentNeighbour.allreadyMet = currentNode.allreadyMet + allreadyMet;
+                    currentNeighbour.associationCost = currentNode.associationCost + associationcost;
+
+                    if (cost < currentNode.cost)
+                    {
+                        OPEN.Insert(0, currentNeighbour);
+                        id++;
+                    }
+                    else if (dates.Count > highestZ)
+                    {
+                        CLOSE = new List<Node>();
+                        CLOSE.Add(currentNeighbour);
+                        highestZ = dates.Count;
+                    }
+                    else if (dates.Count == highestZ && cost < backupNode.cost)
+                    {
+                        CLOSE.Add(currentNeighbour);
                     }
                 }
             }
@@ -205,24 +210,25 @@ namespace Generator
             Node minCostNode = nodes[0];
             foreach (var node in nodes)
             {
-
                 if (node.cost < minCostNode.cost)
                     minCostNode = node;
             }
             return minCostNode;
         }
 
-        private int[] calculateCost(Member m, Member date, int goal, int distanceToGoal, int groupsize, int release)
+        private int[] calculateCost(Member m, Member date, int goal, int distanceToGoal, int associsationcost)
         {
-            int associationCost = m.association != date.association || release > 1 ? 0 : 1;
-            int associationError = m.association != date.association ? 0 : 1;
+            int associationCost = m.association == date.association ? associsationcost + 1 : 0;
+            int associationError = m.association == date.association ? associsationcost + 1 : 0;
 
-            int emptyParty = date.party.Count < 2 && release < date.party.Count ? (2 - date.party.Count - release) * goal * 2 : 0;
             int allReadyMet = AllReadyMet(m, date.party);
-            int allReadyMetCost = allReadyMet > release ? (allReadyMet - release)* goal * 2 : 0;
+            int allReadyMetCost = allReadyMet * goal * 2 ;
 
-            int returnCost = allReadyMetCost + emptyParty + distanceToGoal + associationCost;
-            int[] returnArray = new int[] { returnCost, allReadyMet, associationError };
+            int returnCost = allReadyMetCost + distanceToGoal + (int)Math.Pow((double)associationCost, (double)4) * 2;
+            int[] returnArray = new int[] { returnCost, allReadyMet, associationCost};
+
+            int t = (int)Math.Pow((double)associationCost, (double)4)*2;
+            //Debug.WriteLine("Cost: " + returnCost + ", distanceToGosl: " + t);
             return returnArray;
         }
 
