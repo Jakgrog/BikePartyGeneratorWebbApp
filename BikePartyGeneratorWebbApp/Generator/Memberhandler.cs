@@ -116,9 +116,8 @@ namespace Generator
                     Debug.WriteLine("Ops");
                     currentNode.cost = 1000;
                 }
-
                 List<Member> members = currentNode.members;
-                //Debug.WriteLine("Z: " + currentNode.z + ", Branch " + currentNode.Id + " Error " + currentNode.error + " Cost " + currentNode.cost);
+                Debug.WriteLine("Z: " + currentNode.datesFound.Count + ", associationCost " + currentNode.associationCost + " Cost " + currentNode.cost);
                 //Debug.WriteLine("Node: " + currentNode.x + " - " + currentNode.y);
 
                 if (currentNode.datesFound.Count == goal)
@@ -164,7 +163,7 @@ namespace Generator
                         if(whenToIncreaseGroupsize == 0)
                             groupsize = (goal - dates.Count) <= (numerOfmembers % (groupsize + 1)) * 2 ? groupsize + 1 : groupsize;
                         else
-                            groupsize = (goal - dates.Count) <= whenToIncreaseGroupsize ? groupsize + 1 : groupsize;
+                            groupsize = (goal - dates.Count) <= whenToIncreaseGroupsize+1 ? groupsize + 1 : groupsize;
 
                         bool possibleMatch = findMatch(membersClone[i], membersClone[j], groupsize);
                         if (!possibleMatch)
@@ -175,14 +174,14 @@ namespace Generator
                         Tuple<int, int> date = new Tuple<int, int>(i, j);
                         dates.Add(date);
 
-                        int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], goal, (goal - dates.Count), associationcost);
-                        cost = cost + errorAndCost[0];
+                        int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], goal, (goal - dates.Count), 0);
+                        //cost = cost + errorAndCost[0];
                         allreadyMet = allreadyMet + errorAndCost[1];
                         associationcost = associationcost + errorAndCost[2];
                         registerDate(membersClone[i], membersClone[j], membersClone);
                     }
 
-                    Node currentNeighbour = new Node(i, dates.Count, id, membersClone, dates, cost);
+                    Node currentNeighbour = new Node(i, dates.Count, id, membersClone, dates, (allreadyMet + (goal - dates.Count)));
                     currentNeighbour.allreadyMet = currentNode.allreadyMet + allreadyMet;
                     currentNeighbour.associationCost = currentNode.associationCost + associationcost;
 
@@ -224,10 +223,10 @@ namespace Generator
             int allReadyMet = AllReadyMet(m, date.party);
             int allReadyMetCost = allReadyMet * goal * 2 ;
 
-            int returnCost = allReadyMetCost + distanceToGoal + (int)Math.Pow((double)associationCost, (double)4) * 2;
-            int[] returnArray = new int[] { returnCost, allReadyMet, associationCost};
+            int returnCost = allReadyMetCost + (int)Math.Pow((double)associationCost, (double)4);
+            int[] returnArray = new int[] { returnCost, allReadyMetCost, ((int)Math.Pow((double)associationCost, (double)4)) };
 
-            int t = (int)Math.Pow((double)associationCost, (double)4)*2;
+            int t = (int)Math.Pow((double)associationCost, (double)4);
             //Debug.WriteLine("Cost: " + returnCost + ", distanceToGosl: " + t);
             return returnArray;
         }
