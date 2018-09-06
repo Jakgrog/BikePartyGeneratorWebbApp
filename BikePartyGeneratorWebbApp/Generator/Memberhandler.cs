@@ -70,19 +70,37 @@ namespace Generator
         {
             tempMembers = new List<Member>(members);
             double numberOfMembers = tempMembers.Count;
-            //tempMembers.Shuffle();
+            List<Member> ass1List = tempMembers.FindAll(p => p.association == 0);
+            List<Member> ass2List = tempMembers.FindAll(p => p.association == 1);
+            double numberOfMembersAss1 = ass1List.Count;
+            double numberOfMembersAss2 = ass2List.Count;
 
-            int numnerOfMembersPerDateAss1 = (int)Math.Round(numberOfMembers / 3);
+            //ass1List.Shuffle();
+            //ass2List.Shuffle();
 
-            List<Member> starter = tempMembers.GetRange(0, numnerOfMembersPerDateAss1);
-            List<Member> dinner = tempMembers.GetRange(numnerOfMembersPerDateAss1, numnerOfMembersPerDateAss1);
-            List<Member> dessert = tempMembers.GetRange((2 * numnerOfMembersPerDateAss1), ((int)numberOfMembers - 2 * numnerOfMembersPerDateAss1));
+            int numnerOfMembersPerDate = (int)Math.Round(numberOfMembers / 3);
+            int numnerOfMembersPerDateAss1 = (int)Math.Round(numberOfMembersAss1 / 3);
+            int numnerOfMembersPerDateAss2 = (int)Math.Round(numberOfMembersAss2 / 3);
 
-            starter.ForEach(p => p.duty = "starter");
-            dinner.ForEach(p => p.duty = "dinner");
-            dessert.ForEach(p => p.duty = "dessert");
+            List<Member> starterAss1 = ass1List.GetRange(0, numnerOfMembersPerDateAss1);
+            List<Member> dinnerAss1 = ass1List.GetRange(numnerOfMembersPerDateAss1, numnerOfMembersPerDateAss1);
+            List<Member> dessertAss1 = ass1List.GetRange((2 * numnerOfMembersPerDateAss1), ((int)numberOfMembersAss1 - 2 * numnerOfMembersPerDateAss1));
 
-            return Djikstra(tempMembers, starter.Count, dinner.Count, dessert.Count, numnerOfMembersPerDateAss1);
+            List<Member> dessertAss2 = ass2List.GetRange(0, numnerOfMembersPerDateAss2);
+            List<Member> dinnerAss2 = ass2List.GetRange(numnerOfMembersPerDateAss2, numnerOfMembersPerDateAss2);
+            List<Member> starterAss2 = ass2List.GetRange((2 * numnerOfMembersPerDateAss2), ((int)numberOfMembersAss2 - 2 * numnerOfMembersPerDateAss2));
+
+            starterAss1.ForEach(p => p.duty = "starter");
+            dinnerAss1.ForEach(p => p.duty = "dinner");
+            dessertAss1.ForEach(p => p.duty = "dessert");
+
+            starterAss2.ForEach(p => p.duty = "starter");
+            dinnerAss2.ForEach(p => p.duty = "dinner");
+            dessertAss2.ForEach(p => p.duty = "dessert");
+
+            List<Member> SortedMembers = tempMembers.OrderBy(p => p.association).ToList();
+
+            return Djikstra(SortedMembers, starterAss1.Concat(starterAss2).Count(), dinnerAss1.Concat(dinnerAss2).Count(), dessertAss1.Concat(dessertAss2).Count(), numnerOfMembersPerDate);
         }
 
         private List<Member> Djikstra(List<Member> initMembers, int starterNum, int dinnerNum, int dessertNum, int numnerOfMembersPerDateAss1)
@@ -90,15 +108,16 @@ namespace Generator
             List<Node> OPEN = new List<Node>();
             List<Node> CLOSE = new List<Node>();
 
-            int groupsizeStarter = starterNum % numnerOfMembersPerDateAss1 == 1 ? 2 : (int)Math.Floor((double)((dinnerNum + dessertNum) / starterNum));
-            int groupsizeDinner = dinnerNum % numnerOfMembersPerDateAss1 == 1 ? 2 : (int)Math.Floor((double)((starterNum + dessertNum) / dinnerNum));
-            int groupsizeDessert = dessertNum % numnerOfMembersPerDateAss1 == 2 ? 2 : (int)Math.Floor((double)((dinnerNum + starterNum) / dessertNum));
+            int groupsizeStarter = starterNum % numnerOfMembersPerDateAss1 == 0 ? 2 : (int)Math.Floor((double)((dinnerNum + dessertNum) / starterNum));
+            int groupsizeDinner = dinnerNum % numnerOfMembersPerDateAss1 == 0 ? 2 : (int)Math.Floor((double)((starterNum + dessertNum) / dinnerNum));
+            int groupsizeDessert = dessertNum % numnerOfMembersPerDateAss1 == 0 ? 2 : (int)Math.Floor((double)((dinnerNum + starterNum) / dessertNum));
 
             int highestZ = 0;
 
             int z = 0;
             int id = 0;
             int goal = initMembers.Count * 2;
+            int backupcost = 500;
             Node backupNode = new Node(0, 0, z, initMembers, new List<Tuple<int, int>>(), 500);
             Node currentNode = new Node(0, 0, z, initMembers, new List<Tuple<int, int>>(), 500);
             OPEN.Add(currentNode);
@@ -114,9 +133,13 @@ namespace Generator
                 {
                     currentNode = getNodeWithLowestCost(CLOSE);
                     Debug.WriteLine("Ops");
-                    currentNode.cost = 1000;
+                    currentNode.cost = 10000;
                 }
 
+                if(OPEN.Count > 8000)
+                {
+                    OPEN = new List<Node>();
+                }
                 List<Member> members = currentNode.members;
 
                 if (currentNode.datesFound.Count == goal)
@@ -145,7 +168,7 @@ namespace Generator
                     for (int j = 0; j < numerOfmembers; j++)
                     {
                         bool allreadyRegistered = currentNode.datesFound.FirstOrDefault(n => n.Item1 == i && n.Item2 == j) != null;
-                        if (allreadyRegistered)
+                        if (allreadyRegistered || membersClone[i].allDatesFound())
                         {
                             continue;
                         }
@@ -158,11 +181,12 @@ namespace Generator
                         else if(membersClone[j].duty == "dessert")
                             groupsize = groupsizeDessert;
 
+                        int release = 0;
                         int whenToIncreaseGroupsize = 2 * numerOfmembers - groupsizeDinner * dinnerNum - groupsizeDessert * dessertNum - groupsizeStarter * starterNum;
                         if(whenToIncreaseGroupsize == 0)
                             groupsize = (goal - dates.Count) <= (numerOfmembers % (groupsize + 1)) * 2 ? groupsize + 1 : groupsize;
                         else
-                            groupsize = (goal - dates.Count) <= whenToIncreaseGroupsize ? groupsize + 1 : groupsize;
+                            groupsize = (goal - dates.Count) <= whenToIncreaseGroupsize+release ? groupsize + 1 : groupsize;
 
                         bool possibleMatch = findMatch(membersClone[i], membersClone[j], groupsize);
                         if (!possibleMatch)
@@ -175,29 +199,31 @@ namespace Generator
 
                         int[] errorAndCost = calculateCost(membersClone[i], membersClone[j], goal, (goal - dates.Count), associationcost);
                         cost = cost + errorAndCost[0];
-                        allreadyMet = allreadyMet + errorAndCost[1];
+                        allreadyMet = allreadyMet + errorAndCost[3];
                         associationcost = associationcost + errorAndCost[2];
                         registerDate(membersClone[i], membersClone[j], membersClone);
                     }
 
-                    Node currentNeighbour = new Node(i, dates.Count, id, membersClone, dates, cost+associationcost+currentNode.associationCost);
+                    int datecount = dates.Count;
+                    Node currentNeighbour = new Node(i, datecount, id, membersClone, dates, cost+associationcost);
                     currentNeighbour.allreadyMet = currentNode.allreadyMet + allreadyMet;
                     currentNeighbour.associationCost = currentNode.associationCost + associationcost;
 
                     if (cost < currentNode.cost)
                     {
                         OPEN.Insert(0, currentNeighbour);
+                        //Debug.WriteLine("Cost: " + cost + ", Z: " + datecount);
                         id++;
                     }
-                    else if (dates.Count > highestZ)
+                    else if (datecount >= highestZ && cost < backupcost)
                     {
-                        CLOSE = new List<Node>();
+                        if(datecount > highestZ)
+                        {
+                            //CLOSE = new List<Node>();
+                            highestZ = datecount;
+                        }
                         CLOSE.Add(currentNeighbour);
-                        highestZ = dates.Count;
-                    }
-                    else if (dates.Count == highestZ && cost < backupNode.cost)
-                    {
-                        CLOSE.Add(currentNeighbour);
+                        backupcost = cost;
                     }
                 }
             }
@@ -220,10 +246,10 @@ namespace Generator
             int associationError = m.association == date.association ? associsationcost + 1 : 0;
 
             int allReadyMet = AllReadyMet(m, date.party);
-            int allReadyMetCost = allReadyMet * goal * 2 ;
+            int allReadyMetCost = allReadyMet * goal * 4 ;
 
-            int returnCost = allReadyMetCost + distanceToGoal;
-            int[] returnArray = new int[] { returnCost, allReadyMetCost, ((int)Math.Pow((double)associationCost, (double)4))};
+            int returnCost = allReadyMetCost + distanceToGoal*2;
+            int[] returnArray = new int[] { returnCost, allReadyMetCost, ((int)Math.Pow((double)associationCost, (double)8)), allReadyMet};
 
             return returnArray;
         }
